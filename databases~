@@ -1,0 +1,98 @@
+#!/usr/bin/ksh
+
+user=$1 
+
+clear
+select choice in "Use database" "List databases" "Create database" "Delete databases" "exit"
+do
+	case $choice in
+		"Use database" ) clear
+			echo "Database name: "
+			read usname
+
+			f=0
+			for d in `cat $user/dbslist` ; do
+				if [ "$usname" == "$d" ]; then
+					f=1
+					break
+				fi
+			done
+			if [[ $f -eq 0 ]]; then
+				echo "Database is not found"
+			else
+			 	./tables $user $usname
+			fi
+			read
+			clear
+			;;
+
+		"List databases" ) clear
+			cat $user/dbslist
+			echo "Press enter to back to main menu"
+			read
+			clear	
+			;;
+
+		"Create database" ) clear
+			echo "Database name: "
+			read cname
+
+			f=0
+			for d in `cat $user/dbslist` ; do
+				if [ "$cname" == "$d" ]; then
+					f=1
+					break
+				fi
+			done
+			if [[ $f -eq 0 ]]; then
+				mkdir $user/$cname
+				touch $user/$cname/meta
+				echo $cname >> $user/dbslist
+				echo "Database created succssfuly"
+			else
+			 	echo "Database is already exists"
+			fi
+			
+			read
+			clear
+			;;
+
+		"Delete databases" ) clear
+			echo "Database name: "
+			read dname
+			f=0
+			for d in `cat $user/dbslist` ; do
+				if [ "$dname" == "$d" ]; then
+					f=1
+					break
+				fi
+			done
+			if [[ $f -eq 0 ]]; then
+				echo "Database is not found"
+			else
+			 	echo "Are you sure you want to delete this database ? (y/n)"
+				read r
+				while [ "$r" != "y" ] && [ "$r" != "n" ]; do
+					echo "Wrong answer"	
+					echo "Are you sure you want to delete it ? (y/n)"
+					read r
+				done
+				if [ "$r" == "y" ]; then
+					rm -r $user/$dname
+					sed -i '/^'"$dname"'$/d' $user/dbslist			 
+					echo "Database deleted succssfuly"
+				elif [ "$r" == "n" ]; then
+					echo "We are good"
+				fi
+			fi
+			read
+			clear
+			;;
+
+		"exit" ) break
+			;;
+
+		* ) printf $REPLY" is not an option!\n"
+			;;
+	esac
+done
